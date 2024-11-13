@@ -1,5 +1,8 @@
 # wpds
 
+```
+docker run -it -v ./group_33/:/home/user/workspace/ karmaresearch/wdps2
+```
 
 ```
 python3 -m venv venv
