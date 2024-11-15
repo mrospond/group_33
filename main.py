@@ -1,4 +1,6 @@
 from llama_cpp import Llama
+import spacy
+
 model_path = "/home/user/models/llama-2-7b.Q4_K_M.gguf"
 
 # If you want to use larger models...
@@ -16,3 +18,18 @@ output = llm(
 )
 print("Here is the output")
 print(output['choices'])
+
+#spacy - entity recognition
+llmAnswer = output['choices'][0]['text']
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    from spacy.cli import download
+    download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
+
+text = nlp(llmAnswer)
+entities = [(ent.text, ent.label_) for ent in text.ents]
+print("\nEntities:")
+for entity in entities:
+    print(f"{entity[0]} ({entity[1]})")
