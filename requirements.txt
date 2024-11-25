@@ -1,2 +1,5 @@
 llama-cpp-python
 spacy
+nltk
+spacy-entity-linker
+wikipedia-api
