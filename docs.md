@@ -1,25 +1,42 @@
 # Docs
 
-### How to run:
+## Pre-requisites:
+Make sure you have the following installed on your system:
+- **Docker**
+- **Python 3.x**
+- **pip**
 
-1. Clone the repository
-```
+## Setup and Installation
+
+Follow these steps to set up and run the project:
+
+1. **Clone the Repository**
+```bash
 git clone git@github.com:mrospond/group_33.git
+cd group_33
 ```
-
-2. Mount `group_33` directory inside the `karmaresearch/wdps2` docker container
+2. **Mount `group_33` Directory inside the `karmaresearch/wdps2` Docker Container**
 ```
 docker run -it -v ./group_33/:/home/user/workspace/ karmaresearch/wdps2
 ```
-
-3. Enter `workspace` dir and setup virtual environment
+3. **Enter `workspace` dir**
 ```
 cd workspace
-source venv/bin/activate
 pip3 install -r requirements.txt
 ```
-
-4. Run the script
+4. **Setup Virtual Environment**
+```
+source venv/bin/activate
+```
+5. **Install Dependencies**
+```
+pip3 install -r requirements.txt
+```
+6. **Run the Script**
 ```
 python3 main.py
 ```
+
+## Notes
+- Ensure that Docker is running before executing Docker Command
+- All dependencies required to run the project are listed in requirements.txt file
