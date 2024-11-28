@@ -62,9 +62,13 @@ entities = [(ent.text, ent.label_) for ent in text.ents]
 # for entity in entities:
 #     print(f"{entity[0]} ({entity[1]})")
  
-wikidata_client = Client()
+# wikidata_client = Client()
   
-def entity_disambiguation(entity_name):
+def entity_disambiguation(entity_name: str) -> list:
+    """Returns a list of wikidata links matching the input entity
+    @param entity_name: entity
+    @returns: a list of wikidata links matching given entity
+    """
     entity_name = entity_name.replace(" ", "_")
     query_url = f"https://www.wikidata.org/w/api.php?action=wbsearchentities&search={entity_name}&language=en&format=json"
     response = requests.get(query_url).json()
@@ -82,7 +86,13 @@ def entity_disambiguation(entity_name):
         })
     return links
  
-def disambiguation_scoring(entity, context, links):
+def disambiguation_scoring(entity: str, context: str, links: list) -> list:
+    """Returns a sorted list 
+    @param entity: entity
+    @param context: context
+    @param links: list of wikidata links
+    @returns: a ranked list of wikidata links sorted by score, descending
+    """
     context_tokens = word_tokenize(context.lower())
     entity_tokens = word_tokenize(entity.lower())
     scores = {}

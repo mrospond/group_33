@@ -25,6 +25,7 @@ pip3 install -r requirements.txt
 ```
 4. **Setup Virtual Environment**
 ```
+python3 -m venv venv # skip this step if already exists
 source venv/bin/activate
 ```
 5. **Install Dependencies**
