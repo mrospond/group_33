@@ -13,7 +13,6 @@ Follow these steps to set up and run the project:
 1. **Clone the Repository**
 ```bash
 git clone git@github.com:mrospond/group_33.git
-cd group_33
 ```
 2. **Mount `group_33` Directory inside the `karmaresearch/wdps2` Docker Container**
 ```
