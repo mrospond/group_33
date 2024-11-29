@@ -2,10 +2,10 @@ from llama_cpp import Llama
 import spacy
 import nltk
 from nltk.tokenize import word_tokenize
-from nltk.chunk import ne_chunk
-from nltk.tag import pos_tag
-import wikipedia
-import wikipediaapi
+# from nltk.chunk import ne_chunk
+# from nltk.tag import pos_tag
+# import wikipedia
+# import wikipediaapi
 from wikidata.client import Client
 import requests
 import re
@@ -87,11 +87,11 @@ def entity_disambiguation(entity_name: str) -> list:
     return links
  
 def disambiguation_scoring(entity: str, context: str, links: list) -> list:
-    """Returns a sorted list 
+    """Returns a list of wikidata links sorted by score (descending)
     @param entity: entity
     @param context: context
     @param links: list of wikidata links
-    @returns: a ranked list of wikidata links sorted by score, descending
+    @returns: a list of wikidata links sorted by score in descending order
     """
     context_tokens = word_tokenize(context.lower())
     entity_tokens = word_tokenize(entity.lower())
