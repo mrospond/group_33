@@ -123,37 +123,40 @@ def main(id: str, question: str, output_file: str) -> None:
     #     print(f"{entity[0]} ({entity[1]})")
     
     # wikidata_client = Client()
-    with open(output_file, 'w') as file:
+    with open(output_file, 'a') as file:
 
-        print(id+"\t"+llmAnswer)
-        file.write(id+"\t"+llmAnswer+"\n")
+        print(id+'\tR"'+llmAnswer+'"')
+        file.write(id+'\tR"'+llmAnswer+'"\n')
 
-        print("Entity extracted:")
+        # print("Entity extracted:")
         for entity in entities:
             entity_name = entity[0]
             links = entity_disambiguation(entity_name)
         
             if not links:
-                file.write(id+"\t"+entity_name+"\tNo links found"+"\n")
-                print(id+"\t"+entity_name+"\tNo links found")
+                # file.write(id+"\tE"+entity_name+"\tNo links found"+"\n")
+                # print(id+"\tE"+entity_name+"\tNo links found")
                 continue
         
             ranked_links = disambiguation_scoring(entity_name, llmAnswer, links)
             if ranked_links:
                 best_link = ranked_links[0][0]
             else:
-                best_link = "No Match"    
+                best_link = "" 
+                continue   
             match = re.search(r'(?<=\/)([^\/]+)(?=$)', best_link)
             if match:
                 try:
                     client = Client()
                     entity = client.get(match.group(0), load=True)
                     url = entity.data['sitelinks']['enwiki']['url']
-                    file.write(id+"\t"+entity_name+"\t"+url+"\n")
-                    print(id+"\t"+entity_name+"\t"+url)
+                    file.write(id+'\tE"'+entity_name+'"\t'+url+'\n')
+                    print(id+'\tE"'+entity_name+'"\t'+url)
                 except:
-                    file.write(id+"\t"+entity_name+"\t"+best_link+"\n")
-                    print(id+"\t"+entity_name+"\t"+best_link)
+                    # no wikipedia link for given wikidata entity
+                    pass
+                    # file.write(id+'\tE"'+entity_name+'"\t'+best_link+'\n')
+                    # print(id+'\tE"'+entity_name+'"\t'+best_link+'"')
 
 
 def read_input_file(file: str) -> dict:
@@ -196,12 +199,13 @@ if __name__ == "__main__":
 
     if os.path.exists(output_file):
         os.remove(output_file)
-        print("output file removed")
+        # print("output file removed")
 
     for id, question in input_file.items():
         # print(id +": "+question)
         main(id, question, output_file)
-        raise SystemExit("")
+        # raise SystemExit("")
+        # break
 
         
     
