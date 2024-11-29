@@ -65,7 +65,7 @@ def disambiguation_scoring(entity: str, context: str, links: list) -> list:
     return sorted_links
 
 def main(id: str, question: str, output_file: str) -> None:
-    """Prints (and saves to output.txt) out the disambiguated entity and corresponding Wikipedia link (assures correct output format)
+    """Prints (and saves to output file) out the disambiguated entity and corresponding Wikipedia link (assures correct output format)
     @param id: question id
     @param question: llm input string
     @param output_file: path to output text file
