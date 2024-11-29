@@ -16,12 +16,12 @@ git clone git@github.com:mrospond/group_33.git
 ```
 2. **Mount `group_33` Directory inside the `karmaresearch/wdps2` Docker Container**
 ```
-docker run -it -v ./group_33/:/home/user/workspace/ karmaresearch/wdps2
+cd group_33/
+docker run -it -v ./:/home/user/workspace/ karmaresearch/wdps2
 ```
 3. **Enter `workspace` dir**
 ```
 cd workspace
-pip3 install -r requirements.txt
 ```
 4. **Setup Virtual Environment**
 ```
