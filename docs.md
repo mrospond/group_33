@@ -22,7 +22,6 @@ docker run -it -v ./:/home/user/workspace/ karmaresearch/wdps2
 3. **Enter `workspace` dir**
 ```
 cd workspace
-pip3 install -r requirements.txt
 ```
 4. **Setup Virtual Environment**
 ```
