@@ -64,10 +64,11 @@ def disambiguation_scoring(entity: str, context: str, links: list) -> list:
     sorted_links = sorted(scores.items(), key=lambda x: x[1], reverse=True)
     return sorted_links
 
-def main(id: str, question: str) -> None:
-    """Prints out the disambiguated entity and corresponding Wikipedia link (assures correct output format)
+def main(id: str, question: str, output_file: str) -> None:
+    """Prints (and saves to output.txt) out the disambiguated entity and corresponding Wikipedia link (assures correct output format)
     @param id: question id
     @param question: llm input string
+    @param output_file: path to output text file
     @returns: None
     """
 
@@ -79,13 +80,12 @@ def main(id: str, question: str) -> None:
     output = llm(
         question, # Prompt
         max_tokens=32, # Generate up to 32 tokens
-        stop=["Q:", "\n"], # Stop generating just before the model would generate a new question
+        # stop=["Q:", "\n"], # Stop generating just before the model would generate a new question
+        stop=None,
         echo=True # Echo the prompt back in the output
     )
-    # for debug
-    # print("Here is the output")
-    # print(output['choices'])
 
+    # print(output['choices'])
     llmAnswer = output['choices'][0]['text']
 
     #------------------------------------------------------------------------
@@ -116,35 +116,44 @@ def main(id: str, question: str) -> None:
             nlp = spacy.load("en_core_web_sm")
 
     text = nlp(llmAnswer)
-    entities = [(ent.text, ent.label_) for ent in text.ents]
+    entities = set((ent.text, ent.label_) for ent in text.ents)
+
     # print("\nEntity Recognition:\n")
     # for entity in entities:
     #     print(f"{entity[0]} ({entity[1]})")
     
     # wikidata_client = Client()
-    print("Entity extracted:")
-    for entity in entities:
-        entity_name = entity[0]
-        links = entity_disambiguation(entity_name)
-    
-        if not links:
-            print(id+"\t"+entity_name+"\tNo links found")
-            continue
-    
-        ranked_links = disambiguation_scoring(entity_name, llmAnswer, links)
-        if ranked_links:
-            best_link = ranked_links[0][0]
-        else:
-            best_link = "No Match"    
-        match = re.search(r'(?<=\/)([^\/]+)(?=$)', best_link)
-        if match:
-            try:
-                client = Client()
-                entity = client.get(match.group(0), load=True)
-                url = entity.data['sitelinks']['enwiki']['url']
-                print(id+"\t"+entity_name+"\t"+url)
-            except:
-                print(id+"\t"+entity_name+"\t"+best_link)
+    with open(output_file, 'w') as file:
+
+        print(id+"\t"+llmAnswer)
+        file.write(id+"\t"+llmAnswer+"\n")
+
+        print("Entity extracted:")
+        for entity in entities:
+            entity_name = entity[0]
+            links = entity_disambiguation(entity_name)
+        
+            if not links:
+                file.write(id+"\t"+entity_name+"\tNo links found"+"\n")
+                print(id+"\t"+entity_name+"\tNo links found")
+                continue
+        
+            ranked_links = disambiguation_scoring(entity_name, llmAnswer, links)
+            if ranked_links:
+                best_link = ranked_links[0][0]
+            else:
+                best_link = "No Match"    
+            match = re.search(r'(?<=\/)([^\/]+)(?=$)', best_link)
+            if match:
+                try:
+                    client = Client()
+                    entity = client.get(match.group(0), load=True)
+                    url = entity.data['sitelinks']['enwiki']['url']
+                    file.write(id+"\t"+entity_name+"\t"+url+"\n")
+                    print(id+"\t"+entity_name+"\t"+url)
+                except:
+                    file.write(id+"\t"+entity_name+"\t"+best_link+"\n")
+                    print(id+"\t"+entity_name+"\t"+best_link)
 
 
 def read_input_file(file: str) -> dict:
@@ -161,7 +170,8 @@ def read_input_file(file: str) -> dict:
 
     for line in split_lines:
         if(len(line) != 2):
-            print("parsing error")
+            print(line)
+            raise Exception("Parsing error")
         
         id, question = line[0], line[1]
         questions[id] = question
@@ -181,11 +191,17 @@ if __name__ == "__main__":
     if not os.path.exists(sys.argv[1]):
         raise SystemExit("Sorry, incorrect file path")
 
-    input = read_input_file(sys.argv[1])
+    input_file = read_input_file(sys.argv[1])
+    output_file = "output.txt"
 
-    for id, question in input.items():
+    if os.path.exists(output_file):
+        os.remove(output_file)
+        print("output file removed")
+
+    for id, question in input_file.items():
         # print(id +": "+question)
-        main(id, question)
+        main(id, question, output_file)
+        raise SystemExit("")
 
         
     
