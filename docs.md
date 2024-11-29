@@ -34,7 +34,7 @@ pip3 install -r requirements.txt
 ```
 6. **Run the Script**
 ```
-python3 main.py
+python3 main.py test.txt
 ```
 
 ## Notes
