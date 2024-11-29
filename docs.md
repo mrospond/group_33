@@ -37,6 +37,9 @@ pip3 install -r requirements.txt
 python3 main.py test.txt
 ```
 
+## Output
+The program's output is both printed in the `stdout` and saved to `output.txt` file in the scripts directory
+
 ## Notes
 - Ensure that Docker is running before executing Docker Command
 - All dependencies required to run the project are listed in requirements.txt file
