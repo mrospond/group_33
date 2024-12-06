@@ -197,6 +197,9 @@ if __name__ == "__main__":
     input_file = read_input_file(sys.argv[1])
     output_file = "output.txt"
 
+    nltk.download('punkt_tab')
+
+
     if os.path.exists(output_file):
         os.remove(output_file)
         # print("output file removed")
