@@ -1,11 +1,6 @@
 from llama_cpp import Llama
 import spacy
-import nltk
 from nltk.tokenize import word_tokenize
-# from nltk.chunk import ne_chunk
-# from nltk.tag import pos_tag
-# import wikipedia
-# import wikipediaapi
 from wikidata.client import Client
 import requests
 import re
@@ -13,12 +8,11 @@ import contextlib
 import sys
 import os
 
-# If you want to use larger models...
-model_path = "/home/user/models/llama-2-7b.Q4_K_M.gguf"
 # All models are available at https://huggingface.co/TheBloke. Make sure you download the ones in the GGUF format
+model_path = "/home/user/models/llama-2-7b.Q4_K_M.gguf"
  
 def entity_disambiguation(entity_name: str) -> list:
-    """Returns a list of wikidata links matching the input entity
+    """Returns a list of Wikidata links matching the input entity
     @param entity_name: entity
     @returns: a list of wikidata links matching given entity
     """
@@ -64,6 +58,47 @@ def disambiguation_scoring(entity: str, context: str, links: list) -> list:
     sorted_links = sorted(scores.items(), key=lambda x: x[1], reverse=True)
     return sorted_links
 
+def extract_answer(llm_answer: str, question: str, entities: set) -> tuple:
+    """Extracts the answer and its type (yes/no or entity)
+    @param llm_answer: llm output
+    @param question: llm input question
+    @param entities: 
+    @return type: tuple 
+    @returns: answer, correctness
+    """
+    lower_answer = llm_answer.lower()
+    lower_question = question.lower()
+ 
+    # 1. is yes/no in the question
+    if any(k in lower_answer for k in ["yes", "no"]):
+        answer = "yes" if "yes" in lower_answer else "no"
+        correctness = "correct" if answer in lower_answer else "incorrect" # this wont work e.g.: "is not correct"
+        return answer, correctness
+ 
+    # 2. Implicit yes/no extraction
+    if any(k in lower_question for k in ["is", "are", "does", "yes or no"]):
+        # Look for patterns like "Rome is the capital of Italy"
+        if any(verb in lower_answer for verb in [" is ", " does "]): # "everybody knows that Italy is a beautiful country in Europe, but not everyone knows that the capital of Italy is Rome"
+            if "not" in lower_answer: # 
+                return "no", "correct"
+            else:
+                return "yes", "correct"
+ 
+    # 3. Entity extraction
+    if entities: # meh
+        # Filter and rank entities
+        filtered_entities = [ent for ent in entities if ent[0].isalpha()]
+        if filtered_entities:
+            best_entity = filtered_entities[0][0]  # Take the first relevant entity
+            links = entity_disambiguation(best_entity)
+            if links:
+                ranked_links = disambiguation_scoring(best_entity, llm_answer, links)
+                best_link = ranked_links[0][0] if ranked_links else None
+                return best_link, "correct" if best_link else "incorrect"
+ 
+    # Default case: No valid answer found
+    return None, "incorrect" #TODO: maybe add "NIL entity" instead
+
 def main(id: str, question: str, output_file: str) -> None:
     """Prints (and saves to output file) out the disambiguated entity and corresponding Wikipedia link (assures correct output format)
     @param id: question id
@@ -71,11 +106,7 @@ def main(id: str, question: str, output_file: str) -> None:
     @param output_file: path to output text file
     @returns: None
     """
-
-    # question = "What is the capital of Nicaragua? "
-    # with contextlib.redirect_stdout(None):    
     llm = Llama(model_path=model_path, verbose=False, n_ctx=4096)
-    # print("Asking the question \"%s\" to %s (wait, it can take some time...)" % (question, model_path))
 
     output = llm(
         question, # Prompt
@@ -85,26 +116,7 @@ def main(id: str, question: str, output_file: str) -> None:
         echo=True # Echo the prompt back in the output
     )
 
-    # print(output['choices'])
-    llmAnswer = output['choices'][0]['text']
-
-    #------------------------------------------------------------------------
-    # #NER - NLTK 
-    # nltk.download('words')
-    # nltk.download('punkt_tab')
-    # nltk.download('averaged_perceptron_tagger_eng')
-    # nltk.download('maxent_ne_chunker_tab')
-
-    # tokens = word_tokenize(llmAnswer)
-    # pos_tags = pos_tag(tokens)
-
-    # entities = ne_chunk(pos_tags)
-    # print("\nEntities using NLTK:")
-    # for entitiy in entities:
-    #     if hasattr(entitiy, 'label'):
-    #         print(f"{' '.join(c[0] for c in entitiy)} ({entitiy.label()})")
-
-    #------------------------------------------------------------------------
+    llm_answer = output['choices'][0]['text']
 
     #NER - SpaCy
     with contextlib.redirect_stdout(None):    
@@ -115,30 +127,24 @@ def main(id: str, question: str, output_file: str) -> None:
             download("en_core_web_sm")
             nlp = spacy.load("en_core_web_sm")
 
-    text = nlp(llmAnswer)
+    text = nlp(llm_answer)
     entities = set((ent.text, ent.label_) for ent in text.ents)
 
-    # print("\nEntity Recognition:\n")
-    # for entity in entities:
-    #     print(f"{entity[0]} ({entity[1]})")
-    
-    # wikidata_client = Client()
+
     with open(output_file, 'a') as file:
 
-        print(id+'\tR"'+llmAnswer+'"')
-        file.write(id+'\tR"'+llmAnswer+'"\n')
+        print(id+'\tR"'+llm_answer+'"')
+        file.write(id+'\tR"'+llm_answer+'"\n')
 
         # print("Entity extracted:")
         for entity in entities:
             entity_name = entity[0]
             links = entity_disambiguation(entity_name)
         
-            if not links:
-                # file.write(id+"\tE"+entity_name+"\tNo links found"+"\n")
-                # print(id+"\tE"+entity_name+"\tNo links found")
+            if not links: # perhaps NIL entity?
                 continue
         
-            ranked_links = disambiguation_scoring(entity_name, llmAnswer, links)
+            ranked_links = disambiguation_scoring(entity_name, llm_answer, links)
             if ranked_links:
                 best_link = ranked_links[0][0]
             else:
@@ -158,6 +164,14 @@ def main(id: str, question: str, output_file: str) -> None:
                     # file.write(id+'\tE"'+entity_name+'"\t'+best_link+'\n')
                     # print(id+'\tE"'+entity_name+'"\t'+best_link+'"')
 
+            # Extract the answer and its correctness
+        extracted_answer, correctness = extract_answer(llm_answer, question, entities)
+ 
+        # Write extracted answer and correctness
+        if extracted_answer:
+            file.write(f"{id}\tA\"{extracted_answer}\"\t{correctness}\n")
+            print(f"{id}\tA\"{extracted_answer}\"\t{correctness}")
+
 
 def read_input_file(file: str) -> dict:
     """Returns a dictionary of input question/completions
@@ -171,33 +185,30 @@ def read_input_file(file: str) -> dict:
     
     split_lines = [line.strip().split('\t') for line in lines]
 
-    for line in split_lines:
+    for i, line in enumerate(split_lines):
         if(len(line) != 2):
-            print(line)
-            raise Exception("Parsing error")
+            raise Exception(f"Input file parsing error in line {i+1}: {line}")
         
         id, question = line[0], line[1]
         questions[id] = question
     
-
-    # print(lines)
-    # print(split_lines)
-    # print(questions)
     return questions
 
 
 if __name__ == "__main__":
     
     if len(sys.argv) != 2:
-        raise SystemExit("Sorry, incorrect number of arguments")
+        raise SystemExit(f"Sorry, incorrect number of arguments\nUsage: python3 {sys.argv[0]} input_file.txt")
 
     if not os.path.exists(sys.argv[1]):
-        raise SystemExit("Sorry, incorrect file path")
+        raise SystemExit(f"Sorry, incorrect file path\n{sys.argv[1]} not found :(")
 
     input_file = read_input_file(sys.argv[1])
     output_file = "output.txt"
 
-    nltk.download('punkt_tab')
+    if False:
+        import nltk
+        nltk.download('punkt_tab')
 
 
     if os.path.exists(output_file):
