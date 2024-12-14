@@ -1,5 +1,7 @@
 from entity_disambiguation import *
 import re
+from wikidata.client import Client
+
 
 def extract_answer(llm_answer: str, question: str, entities: set) -> tuple:
     """Extracts the answer and its type (yes/no or entity)
@@ -22,9 +24,9 @@ def extract_answer(llm_answer: str, question: str, entities: set) -> tuple:
         noTokens = ["no", "is not", "are not", "cannot", "do not", "have not", "will not"]
 
         if starts_with_token(just_lower_answer, yesTokens):
-                return "yes", "correct"
+                return "yes"
         elif starts_with_token(just_lower_answer, noTokens):
-                return "no", "correct"
+                return "no"
         else:
             yesScore = 0
             noScore = 0
@@ -38,24 +40,31 @@ def extract_answer(llm_answer: str, question: str, entities: set) -> tuple:
 
             print(just_lower_answer,yesScore, noScore)
             if yesScore > noScore:
-                return "yes", "correct"
+                return "yes"
             elif noScore > yesScore:
-                return "no", "correct"
+                return "no"
             else:
-                return "unknown", "correct"
+                return "yes"
     else:
-        # 3. Entity extraction
-        if entities: # meh
-            # Filter and rank entities
+        if entities:
             filtered_entities = [ent for ent in entities if ent[0].isalpha()]
             if filtered_entities:
-                best_entity = filtered_entities[0][0]  # Take the first relevant entity
+                best_entity = filtered_entities[0][0]
                 links = entity_disambiguation(best_entity)
                 if links:
                     ranked_links = disambiguation_scoring(best_entity, llm_answer, links)
                     best_link = ranked_links[0][0] if ranked_links else None
-                    return best_link, "correct" if best_link else "incorrect"
- 
+                    match = re.search(r'(?<=\/)([^\/]+)(?=$)', best_link)
+                    if match:
+                        try:
+                            client = Client()
+                            entity = client.get(match.group(0), load=True)
+                            url = entity.data['sitelinks']['enwiki']['url']
+                            return url
+                        except:
+                            pass       
+                
+            
     # Default case: No valid answer found
     return None, "incorrect" #TODO: maybe add "NIL entity" instead
 
