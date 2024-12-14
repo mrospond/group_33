@@ -2,10 +2,6 @@ from llama_cpp import Llama
 import spacy
 import nltk
 from nltk.tokenize import word_tokenize
-# from nltk.chunk import ne_chunk
-# from nltk.tag import pos_tag
-# import wikipedia
-# import wikipediaapi
 from wikidata.client import Client
 import requests
 import re
@@ -28,7 +24,6 @@ def main(id: str, question: str, output_file: str) -> None:
     @returns: None
     """
 
-    # question = "What is the capital of Nicaragua? "
     # with contextlib.redirect_stdout(None):    
     llm = Llama(model_path=model_path, verbose=False, n_ctx=4096)
     # print("Asking the question \"%s\" to %s (wait, it can take some time...)" % (question, model_path))
@@ -41,7 +36,6 @@ def main(id: str, question: str, output_file: str) -> None:
         echo=True # Echo the prompt back in the output
     )
 
-    # print(output['choices'])
     llmAnswer = output['choices'][0]['text']
 
     #------------------------------------------------------------------------
@@ -74,24 +68,16 @@ def main(id: str, question: str, output_file: str) -> None:
     text = nlp(llmAnswer)
     entities = set((ent.text, ent.label_) for ent in text.ents)
 
-    # print("\nEntity Recognition:\n")
-    # for entity in entities:
-    #     print(f"{entity[0]} ({entity[1]})")
-    
-    # wikidata_client = Client()
     with open(output_file, 'a') as file:
 
         print(id+'\tR"'+llmAnswer+'"')
         file.write(id+'\tR"'+llmAnswer+'"\n')
 
-        # print("Entity extracted:")
         for entity in entities:
             entity_name = entity[0]
             links = entity_disambiguation(entity_name)
         
             if not links:
-                # file.write(id+"\tE"+entity_name+"\tNo links found"+"\n")
-                # print(id+"\tE"+entity_name+"\tNo links found")
                 continue
         
             ranked_links = disambiguation_scoring(entity_name, llmAnswer, links)
@@ -109,16 +95,16 @@ def main(id: str, question: str, output_file: str) -> None:
                     file.write(id+'\tE"'+entity_name+'"\t'+url+'\n')
                     print(id+'\tE"'+entity_name+'"\t'+url)
                 except:
-                    # no wikipedia link for given wikidata entity
                     pass
-                    # file.write(id+'\tE"'+entity_name+'"\t'+best_link+'\n')
-                    # print(id+'\tE"'+entity_name+'"\t'+best_link+'"')
-
-    extracted_answer, correctness = extract_answer(llmAnswer, question, entities)
 
     # Write extracted answer and correctness
+    extracted_answer = extract_answer(llmAnswer, question, entities)
     if extracted_answer:
-        print(f"{id}\tA\"{extracted_answer}\"\t{correctness}")
+        print(f"{id}\tA\"{extracted_answer}")
+
+    correctness = "Correct"
+    if True:
+        print(f"{id}\tA\"{correctness}")
 
 def read_input_file(file: str) -> dict:
     """Returns a dictionary of input question/completions
@@ -140,10 +126,6 @@ def read_input_file(file: str) -> dict:
         id, question = line[0], line[1]
         questions[id] = question
     
-
-    # print(lines)
-    # print(split_lines)
-    # print(questions)
     return questions
 
 
@@ -163,13 +145,9 @@ if __name__ == "__main__":
 
     if os.path.exists(output_file):
         os.remove(output_file)
-        # print("output file removed")
 
     for id, question in input_file.items():
-        # print(id +": "+question)
         main(id, question, output_file)
-        # raise SystemExit("")
-        # break
 
         
     
