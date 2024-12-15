@@ -68,6 +68,15 @@ def main(id: str, question: str, output_file: str) -> None:
     text = nlp(llmAnswer)
     entities = set((ent.text, ent.label_) for ent in text.ents)
 
+    answer = llmAnswer.lower()
+    question = question.lower()
+
+    if answer.startswith(question):
+        answer = llmAnswer[len(question):].strip()
+
+    textAnswer = nlp(answer)
+    entitiesAnswer = set((ent.text, ent.label_) for ent in textAnswer.ents)
+
     with open(output_file, 'a') as file:
 
         print(id+'\tR"'+llmAnswer+'"')
@@ -98,7 +107,7 @@ def main(id: str, question: str, output_file: str) -> None:
                     pass
 
     # Write extracted answer and correctness
-    extracted_answer = extract_answer(llmAnswer, question, entities)
+    extracted_answer = extract_answer(answer, llmAnswer, question, entities, entitiesAnswer)
     if extracted_answer:
         print(f"{id}\tA\"{extracted_answer}")
 
