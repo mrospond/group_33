@@ -52,9 +52,10 @@ def extract_answer(answer: str, llAnswer: str, question: str, entities: set, ent
         maxVal = -1000
         bestTup = 0
         for tup, val in zip(entitiesAnswer, similarities):
-            if maxVal < val:
-                bestTup = tup
-                maxVal = val
+            if tup[0].lower() not in question:
+                if maxVal < val:
+                    bestTup = tup
+                    maxVal = val
         bestEntity = bestTup[0]
         links = entity_disambiguation(bestEntity)
 
