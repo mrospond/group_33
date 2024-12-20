@@ -94,19 +94,20 @@ def main(id: str, question: str, output_file: str) -> None:
                     pass
 
     # Write extracted answer and correctness
-    extracted_answer, question_type = extract_answer(answer, llmAnswer, question, entities, entitiesAnswer)
-    if extracted_answer:
-        print(f"{id}\tA\"{extracted_answer}")
-        
-        correctness = fact_checking(
-            question,
-            entities_names,
-            entities_links,
-            extracted_answer,
-            question_type
-        )
-
-        print(f"{id}\tA\"{correctness}")
+        extracted_answer, question_type = extract_answer(answer, llmAnswer, question, entities, entitiesAnswer)
+        if extracted_answer:
+            file.write(id+'\tA"'+extracted_answer+'"\n')
+            print(f"{id}\tA\"{extracted_answer}\"")
+            
+            correctness = fact_checking(
+                question,
+                entities_names,
+                entities_links,
+                extracted_answer,
+                question_type
+            )
+            file.write(id+'\tC"'+correctness+'"\n')
+            print(f"{id}\tC\"{correctness}\"")
 
 def read_input_file(file: str) -> dict:
     """Returns a dictionary of input question/completions
