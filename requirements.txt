@@ -1,5 +1,7 @@
 annotated-types==0.7.0
+beautifulsoup4==4.12.3
 blis==1.0.1
+bs4==0.0.2
 catalogue==2.0.10
 certifi==2024.8.30
 charset-normalizer==3.4.0
@@ -11,6 +13,7 @@ diskcache==5.6.3
 en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
 filelock==3.16.1
 fsspec==2024.10.0
+fuzzywuzzy==0.18.0
 huggingface-hub==0.26.5
 idna==3.10
 Jinja2==3.1.4
@@ -43,11 +46,13 @@ scipy==1.14.1
 sentence-transformers==3.3.1
 shellingham==1.5.4
 smart-open==7.0.5
+soupsieve==2.6
 spacy==3.8.2
 spacy-legacy==3.0.12
 spacy-loggers==1.0.5
 srsly==2.4.8
 sympy==1.13.1
+textblob==0.18.0.post0
 thinc==8.3.2
 threadpoolctl==3.5.0
 tokenizers==0.21.0
