@@ -72,17 +72,17 @@ def extract_answer(answer: str, llAnswer: str, question: str, entities: set, ent
                     pass            
     return "no", question_type
 
-def starts_with_w_word(question):
+def starts_with_w_word(question: str) -> bool:
     pattern = r"^\s*(who|what|when|where|why|which)\b"
     return bool(re.match(pattern, question, re.IGNORECASE))
 
-def starts_with_token(answer, tokens):
+def starts_with_token(answer: str, tokens: str) -> bool:
     for token in tokens:
         if answer.startswith(token):
             return True
     return False
 
-def cosine_similarity(question_ents):
+def cosine_similarity(question_ents: list) -> float:
     if not question_ents:
         return question_ents
     similarity_scores = model.predict(question_ents, show_progress_bar=False)

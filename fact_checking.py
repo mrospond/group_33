@@ -4,9 +4,18 @@ from bs4 import BeautifulSoup
 from nltk.tokenize import sent_tokenize
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
- 
 
-def fact_checking(question, entities_names, entities_links, extracted_answer, question_type):
+
+def fact_checking(question: str, entities_names: list, entities_links: list, extracted_answer: str, question_type: int) -> str:
+    """Compare extracted answers with entity information
+    @param question: input question
+    @param entities_names: list of relevant entity names
+    @param entities_links: corresponding Wikipedia links
+    @param extracted_answer: answer received from llm
+    @param question_type: type of question - yes/no or entity
+    @returns: validated "Correct" | "Incorrect"
+    """
+    all_keywords_contents = ""
     entity_keywords_contents = ""
     for entity_link in entities_links:
         wikipedia_content = wikipedia_content_scrapper(entity_link)
@@ -28,7 +37,11 @@ def fact_checking(question, entities_names, entities_links, extracted_answer, qu
         else:
             return "Incorrect"
         
-def wikipedia_content_scrapper(url):
+def wikipedia_content_scrapper(url: str) -> str:
+    """Scrapes content from wikipedia
+    @param url: wiki page link
+    @returns parsed body content of the page
+    """
     response = requests.get(url)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -44,7 +57,13 @@ def wikipedia_content_scrapper(url):
         return None
  
  
-def keyword_contents_extraction(content, entities_names):
+def keyword_contents_extraction(content: str, entities_names: list) -> str:
+    """Extracts sentences including given keywords
+    @param content: text to search through
+    @param entities_names: list of keywords to look for
+    @returns: relevant sentences
+    """
+
     sentences = sent_tokenize(content)
     ent_names_lower = [ent.lower() for ent in entities_names]
     entContent = ""
@@ -66,7 +85,12 @@ def keyword_contents_extraction(content, entities_names):
     return entContent
  
  
-def bool_answer_extraction(question, content):
+def bool_answer_extraction(question: str, content: str) -> str:
+    """Using roberta-large model, trained on standard question answering dataset and extracted context, estimates the "yes" or "no" probabilities
+    @param question: input question
+    @param content: parsed text context
+    @returns "yes" | "no" based on calculated prediction 
+    """
     tokenizer = AutoTokenizer.from_pretrained("nfliu/roberta-large_boolq")
     model_bool = AutoModelForSequenceClassification.from_pretrained("nfliu/roberta-large_boolq")
  
@@ -82,19 +106,20 @@ def bool_answer_extraction(question, content):
         return "no"
  
  
-def encode_text(text):
+def encode_text(text: str) -> str:
+    """Calculate word embeddings using bert model
+    @returns vector representation
+    """
     sim_model = SentenceTransformer('bert-base-nli-stsb-mean-tokens')
     encoded_text = sim_model.encode(text, convert_to_tensor=True)
     return encoded_text
  
  
-def similarity_cal(encodingExtracted, encodingEntity):
-    cosine_scores = util.pytorch_cos_sim(encodingExtracted, encodingEntity)
-    return cosine_scores.item()
- 
- 
-def similarity(contentExtracted, contentEntity):
+def similarity(contentExtracted: str, encodingEntity: str) -> float:
+    """Calculates cosing similarity between the embeddings
+    @returns floating point cosine similarity of the inputs
+    """
     encodingExtracted = encode_text(contentExtracted)
-    encodingEntity = encode_text(contentEntity)
-    similarity_score = similarity_cal(encodingExtracted, encodingEntity)
+    encodingEntity = encode_text(encodingEntity)
+    similarity_score = util.pytorch_cos_sim(encodingExtracted, encodingEntity).item()
     return similarity_score
