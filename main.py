@@ -125,16 +125,16 @@ def read_input_file(file: str) -> dict:
     with open(file, 'r') as file:
         lines = file.readlines()
     
-    split_lines = [line.strip().split('\t') for line in lines]
-
-    for line in split_lines:
+    split_lines = [line.strip().split('\t') for line in lines if line.strip()]
+    
+    for i, line in enumerate(split_lines):
         if(len(line) != 2):
-            print(line)
-            raise Exception("Parsing error")
-        
+            print(fr"Parsing error in line {i}: {line}, len: {len(line)} != 2, sep: \t")
+            continue
+
         id, question = line[0], line[1]
         questions[id] = question
-    
+
     return questions
 
 
