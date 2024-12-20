@@ -9,7 +9,10 @@ def entity_disambiguation(entity_name: str) -> list:
     """
     entity_name = entity_name.replace(" ", "_")
     query_url = f"https://www.wikidata.org/w/api.php?action=wbsearchentities&search={entity_name}&language=en&format=json"
-    response = requests.get(query_url).json()
+    try:
+        response = requests.get(query_url).json()
+    except:
+        response = ""
  
     if 'search' not in response:
         return []
