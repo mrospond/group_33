@@ -91,7 +91,7 @@ def encode_text(text):
     return encoded_text
  
  
-def similarity_score(embedding1, embedding2):
+def similarity_cal(embedding1, embedding2):
     cosine_scores = util.pytorch_cos_sim(embedding1, embedding2)
     return cosine_scores.item()
  
@@ -99,7 +99,7 @@ def similarity_score(embedding1, embedding2):
 def similarity(text1, text2):
     embedding1 = encode_text(text1)
     embedding2 = encode_text(text2)
-    similarity_score = similarity_score(embedding1, embedding2)
+    similarity_score = similarity_cal(embedding1, embedding2)
     return similarity_score
  
  
