@@ -40,7 +40,7 @@ def main(id: str, question: str, output_file: str) -> None:
     llmAnswer = output['choices'][0]['text']
     entities_links = []
     entities_names = []
-
+    question_type = 0
 
     #NER - SpaCy
     with contextlib.redirect_stdout(None):    
@@ -95,15 +95,16 @@ def main(id: str, question: str, output_file: str) -> None:
                     pass
 
     # Write extracted answer and correctness
-    extracted_answer = extract_answer(answer, llmAnswer, question, entities, entitiesAnswer)
+    extracted_answer, question_type = extract_answer(answer, llmAnswer, question, entities, entitiesAnswer)
     if extracted_answer:
         print(f"{id}\tA\"{extracted_answer}")
-
+        
         correctness = fact_checking(
             question,
             entities_names,
             entities_links,
-            extracted_answer
+            extracted_answer,
+            question_type
         )
 
         print(f"{id}\tA\"{correctness}")
