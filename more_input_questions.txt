@@ -1,0 +1,20 @@
+question-006	Question: Is Paris the capital of France? Answer:
+question-007	Question: Is Mount Everest the tallest mountain in the world? Answer:
+question-008	The longest river in the world is the Nile River
+question-009	Question: Who is the author of "1984"? Answer:
+question-010	Question: Is it true that Japan is an island nation? Answer:
+question-011	Question: Does the Eiffel Tower stand in London? Answer:
+question-012	The fastest animal on Earth is the peregrine falcon
+question-013	Question: Who was the first man to walk on the moon? Answer:
+question-014	Question: Is the Sahara Desert the largest desert in the world? Answer:
+question-015	Question: Is it true that the Great Wall of China can be seen from space? Answer:
+question-016	Question: What is the capital of Canada? Answer:
+question-017	Question: Was Leonardo da Vinci a famous painter and inventor? Answer:
+question-018	Question: Does the Amazon Rainforest cover parts of Brazil, Peru, and Colombia? Answer:
+question-019	Question: Is the Mona Lisa displayed in the Louvre Museum? Answer:
+question-020	Question: Does the Atlantic Ocean separate North America and Europe? Answer:
+question-021	Question: Is the Earth the fourth planet from the Sun? Answer:
+question-022	The largest living species of shark is the whale shark
+question-023	Question: Is Tokyo the capital of Japan? Answer:
+question-024	Question: Was the Titanic a British ship? Answer:
+question-025	Question: Is it true that the Great Barrier Reef is located off the coast of Australia? Answer:

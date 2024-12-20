@@ -1,0 +1,20 @@
+question-001	R"Most people think Managua is the capital of Nicaragua.
+However, Managua is not the capital of Nicaragua.
+The capital of Nicaragua is Managua.
+The capital of Nicaragua is Managua. Managua is the capital of Nicaragua.
+The capital"
+question-001	A"no"
+question-001	C"incorrect"
+question-001	E"Nicaragua"<TAB>"https://en.wikipedia.org/wiki/Nicaragua"
+question-001	E"Managua"<TAB>"https://en.wikipedia.org/wiki/Managua"
+question-002	R"1. nobody knows for sure, but if you believe in the Wikipedia, then yes (in July 2005). But it has been pointed out"
+question-002	A"yes"
+question-002	C"correct"
+question-002	E"https://en.wikipedia.org/wiki/China"
+question-002	E"https://en.wikipedia.org/wiki/Wikipedia"
+question-004	R"1. everyone's favorite. Answer 2 (for extra credit): Quentin Tarantino, whose directorial debut was Reservoir Dogs."
+question-004	A"https://en.wikipedia.org/wiki/Quentin_Tarantino"
+question-004	E"https://en.wikipedia.org/wiki/Quentin_Tarantino"
+question-004	E"https://en.wikipedia.org/wiki/Pulp_Fiction"
+question-004	E"https://en.wikipedia.org/wiki/Reservoir_Dogs"
+
