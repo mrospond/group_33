@@ -13,9 +13,8 @@ from answer_extraction import *
 from entity_disambiguation import *
 from fact_checking import *
 
-# If you want to use larger models...
-model_path = "/home/user/models/llama-2-7b.Q4_K_M.gguf"
 # All models are available at https://huggingface.co/TheBloke. Make sure you download the ones in the GGUF format
+model_path = "/home/user/models/llama-2-7b.Q4_K_M.gguf"
 
 def main(id: str, question: str, output_file: str) -> None:
     """Prints (and saves to output file) out the disambiguated entity and corresponding Wikipedia link (assures correct output format)
@@ -94,7 +93,6 @@ def main(id: str, question: str, output_file: str) -> None:
                 except:
                     pass
 
-    # Write extracted answer and correctness
     extracted_answer = extract_answer(answer, llmAnswer, question, entities, entitiesAnswer)
     if extracted_answer:
         print(f"{id}\tA\"{extracted_answer}")
@@ -142,7 +140,10 @@ if __name__ == "__main__":
     input_file = read_input_file(sys.argv[1])
     output_file = "output.txt"
 
+    # setup
+
     nltk.download('punkt_tab')
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
     if os.path.exists(output_file):
