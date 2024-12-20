@@ -11,6 +11,7 @@ import os
 
 from answer_extraction import *
 from entity_disambiguation import *
+from fact_checking import *
 
 # If you want to use larger models...
 model_path = "/home/user/models/llama-2-7b.Q4_K_M.gguf"
@@ -37,24 +38,9 @@ def main(id: str, question: str, output_file: str) -> None:
     )
 
     llmAnswer = output['choices'][0]['text']
+    entities_links = []
+    entities_names = []
 
-    #------------------------------------------------------------------------
-    # #NER - NLTK 
-    # nltk.download('words')
-    # nltk.download('punkt_tab')
-    # nltk.download('averaged_perceptron_tagger_eng')
-    # nltk.download('maxent_ne_chunker_tab')
-
-    # tokens = word_tokenize(llmAnswer)
-    # pos_tags = pos_tag(tokens)
-
-    # entities = ne_chunk(pos_tags)
-    # print("\nEntities using NLTK:")
-    # for entitiy in entities:
-    #     if hasattr(entitiy, 'label'):
-    #         print(f"{' '.join(c[0] for c in entitiy)} ({entitiy.label()})")
-
-    #------------------------------------------------------------------------
 
     #NER - SpaCy
     with contextlib.redirect_stdout(None):    
@@ -103,6 +89,8 @@ def main(id: str, question: str, output_file: str) -> None:
                     url = entity.data['sitelinks']['enwiki']['url']
                     file.write(id+'\tE"'+entity_name+'"\t'+url+'\n')
                     print(id+'\tE"'+entity_name+'"\t'+url)
+                    entities_links.append(url)
+                    entities_names.append(entity_name)
                 except:
                     pass
 
@@ -111,8 +99,13 @@ def main(id: str, question: str, output_file: str) -> None:
     if extracted_answer:
         print(f"{id}\tA\"{extracted_answer}")
 
-    correctness = "Correct"
-    if True:
+        correctness = fact_checking(
+            question,
+            entities_names,
+            entities_links,
+            extracted_answer
+        )
+
         print(f"{id}\tA\"{correctness}")
 
 def read_input_file(file: str) -> dict:
@@ -160,3 +153,4 @@ if __name__ == "__main__":
 
         
     
+
