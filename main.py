@@ -86,8 +86,8 @@ def main(id: str, question: str, output_file: str) -> None:
                     client = Client()
                     entity = client.get(match.group(0), load=True)
                     url = entity.data['sitelinks']['enwiki']['url']
-                    file.write(id+'\tE"'+entity_name+'"\t'+url+'\n')
-                    print(id+'\tE"'+entity_name+'"\t'+url)
+                    # file.write(id+'\tE"'+entity_name+'"\t'+url+'\n')
+                    # print(id+'\tE"'+entity_name+'"\t'+url)
                     entities_links.append(url)
                     entities_names.append(entity_name)
                 except:
@@ -108,6 +108,9 @@ def main(id: str, question: str, output_file: str) -> None:
             )
             file.write(id+'\tC"'+correctness+'"\n')
             print(f"{id}\tC\"{correctness}\"")
+        for entity_name, url in zip(entities_names, entities_links):
+            file.write(id+'\tE"'+entity_name+'"\t'+url+'\n')
+            print(id+'\tE"'+entity_name+'"\t'+url)
 
 def read_input_file(file: str) -> dict:
     """Returns a dictionary of input question/completions
@@ -148,7 +151,7 @@ if __name__ == "__main__":
     nltk.download('punkt_tab')
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-
+    print("The program is running correctly, wait patiently;)")
     if os.path.exists(output_file):
         os.remove(output_file)
 
