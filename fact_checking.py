@@ -6,25 +6,23 @@ from sentence_transformers import SentenceTransformer, util
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
  
 
-def fact_checking(question, entities_names, entities_links, extracted_answer):
-    keywords = entities_names
-    all_keywords_contents = ""
+def fact_checking(question, entities_names, entities_links, extracted_answer, question_type):
+    entity_keywords_contents = ""
     for entity_link in entities_links:
         wikipedia_content = wikipedia_content_scrapper(entity_link)
-        keywords_contents = keyword_contents_extraction(wikipedia_content, keywords)
-        all_keywords_contents += keywords_contents
+        keywords_contents = keyword_contents_extraction(wikipedia_content, entities_names)
+        entity_keywords_contents += keywords_contents
  
-    if extracted_answer == "yes" or extracted_answer == "no":
-        bool_answer = bool_answer_extraction(question, all_keywords_contents)
+    if question_type == 0:
+        bool_answer = bool_answer_extraction(question, entity_keywords_contents)
         if bool_answer == extracted_answer:
             return "Correct"
         else:
             return "Incorrect"
- 
     else:
         wikipedia_content = wikipedia_content_scrapper(extracted_answer)
-        extracted_keywords_contents = keyword_contents_extraction(wikipedia_content, keywords)
-        similarity_score = similarity(extracted_keywords_contents, all_keywords_contents)
+        extracted_keywords_contents = keyword_contents_extraction(wikipedia_content, entities_names)
+        similarity_score = similarity(extracted_keywords_contents, entity_keywords_contents)
         if similarity_score > 0.3:
             return "Correct"
         else:
@@ -46,40 +44,39 @@ def wikipedia_content_scrapper(url):
         return None
  
  
-def keyword_contents_extraction(content, keywords):
+def keyword_contents_extraction(content, entities_names):
     sentences = sent_tokenize(content)
-    keywords_lower = [keyword.lower() for keyword in keywords]
-    selected_sentences = ""
+    ent_names_lower = [ent.lower() for ent in entities_names]
+    entContent = ""
     for sentence in sentences:
         sentence_lower = sentence.lower() 
-        all_keywords_found = True 
+        ent_found = True 
 
-        for keyword in keywords_lower:
-            if keyword in sentence_lower:
-                all_keywords_found = True 
+        for ent in ent_names_lower:
+            if ent in sentence_lower:
+                ent_found = True 
                 break 
-            elif keyword not in sentence_lower:
-                all_keywords_found = False 
+            elif ent not in sentence_lower:
+                ent_found = False 
                 break 
 
-        if all_keywords_found:
-            selected_sentences += sentence + " "
+        if ent_found:
+            entContent += sentence + " "
 
-    return selected_sentences
+    return entContent
  
  
 def bool_answer_extraction(question, content):
     tokenizer = AutoTokenizer.from_pretrained("nfliu/roberta-large_boolq")
-    model_boolQ = AutoModelForSequenceClassification.from_pretrained("nfliu/roberta-large_boolq")
+    model_bool = AutoModelForSequenceClassification.from_pretrained("nfliu/roberta-large_boolq")
  
-    sequence = tokenizer.encode_plus(question, content, return_tensors="pt", max_length=512, truncation=True)[
-        'input_ids']
-    logits = model_boolQ(sequence)[0]
+    sequence = tokenizer.encode_plus(question, content, return_tensors="pt", max_length=512, truncation=True)['input_ids']
+    logits = model_bool(sequence)[0]
     probabilities = torch.softmax(logits, dim=1).detach().cpu().tolist()[0]
-    proba_yes = round(probabilities[1], 2)
-    proba_no = round(probabilities[0], 2)
+    prob_yes = round(probabilities[1], 2)
+    prob_no = round(probabilities[0], 2)
   
-    if proba_yes > proba_no:
+    if prob_yes >= prob_no:
         return "yes"
     else:
         return "no"
@@ -91,16 +88,13 @@ def encode_text(text):
     return encoded_text
  
  
-def similarity_cal(embedding1, embedding2):
-    cosine_scores = util.pytorch_cos_sim(embedding1, embedding2)
+def similarity_cal(encodingExtracted, encodingEntity):
+    cosine_scores = util.pytorch_cos_sim(encodingExtracted, encodingEntity)
     return cosine_scores.item()
  
  
-def similarity(text1, text2):
-    embedding1 = encode_text(text1)
-    embedding2 = encode_text(text2)
-    similarity_score = similarity_cal(embedding1, embedding2)
+def similarity(contentExtracted, contentEntity):
+    encodingExtracted = encode_text(contentExtracted)
+    encodingEntity = encode_text(contentEntity)
+    similarity_score = similarity_cal(encodingExtracted, encodingEntity)
     return similarity_score
- 
- 
- 

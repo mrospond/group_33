@@ -4,6 +4,7 @@ from sentence_transformers import CrossEncoder
 from entity_disambiguation import *
 
 model = CrossEncoder('abbasgolestani/ag-nli-DeTS-sentence-similarity-v1')
+question_type = 0
 
 def extract_answer(answer: str, llAnswer: str, question: str, entities: set, entitiesAnswer: set) -> tuple:
     """Extracts the answer and its type (yes/no or entity)
@@ -18,13 +19,14 @@ def extract_answer(answer: str, llAnswer: str, question: str, entities: set, ent
     lower_answer = answer.lower()
 
     if not starts_with_w_word(lower_question):
+        question_type = 0
         yesTokens = ["yes", "indeed", "certainly", "absolutely", "definitely", "of course", "sure", "right", "true", "affirmative", "agreed", "correct"]
         noTokens = ["no", "not", "none", "never", "cannot", "isn't", "aren't", "don't", "won't", "haven't"]
 
         if starts_with_token(lower_answer, yesTokens):
-                return "yes"
+                return "yes", question_type
         elif starts_with_token(lower_answer, noTokens):
-                return "no"
+                return "no", question_type
         else:
             yesScore = 0
             noScore = 0
@@ -37,12 +39,13 @@ def extract_answer(answer: str, llAnswer: str, question: str, entities: set, ent
                 noScore += token_count
 
             if yesScore > noScore:
-                return "yes"
+                return "yes", question_type
             elif noScore > yesScore:
-                return "no"
+                return "no", question_type
             else:
-                return "yes"
+                return "yes", question_type
     else:
+        question_type = 1
         question_ents = [(question, ent[0]) for ent in entitiesAnswer]
         similarities = cosine_similarity(question_ents)
 
@@ -57,17 +60,17 @@ def extract_answer(answer: str, llAnswer: str, question: str, entities: set, ent
 
         if links:
             ranked_links = disambiguation_scoring(bestEntity, llAnswer, links)
-            best_link = ranked_links[0][0] if ranked_links else None
+            best_link = ranked_links[0][0]
             match = re.search(r'(?<=\/)([^\/]+)(?=$)', best_link)
             if match:
                 try:
                     client = Client()
                     entity = client.get(match.group(0), load=True)
                     url = entity.data['sitelinks']['enwiki']['url']
-                    return url
+                    return url, question_type
                 except:
                     pass            
-    return None
+    return "no", question_type
 
 def starts_with_w_word(question):
     pattern = r"^\s*(who|what|when|where|why|which)\b"
